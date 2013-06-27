@@ -68,64 +68,120 @@ class Palette
     public function __construct($filename = null)
     {
         // Define shortcut to directory separator
-        define("DS", DIRECTORY_SEPARATOR);
+        if (! defined('DS')) {
+            define("DS", DIRECTORY_SEPARATOR);
+        }
 
-        $this->precision    = 5;
+        $this->precision    = 10;
         $this->returnColors = 10;
         $this->colorsArray  = array();
         $this->filename     = $filename;
-        $this->destination  = dirname(__FILE__) . DS . basename($filename) . '.json';
+        $this->destination  = dirname(__FILE__)
+                                . DS . 'datafiles'
+                                . DS . basename($filename) . '.json';
 
         if (! empty($this->filename)) {
-            $this->isImage();
-            $this->getPalette();
+            $this->run();
         }
     }
 
+    /**
+     * run the process
+     *
+     * if you want to change parameters you can init new Palette, then change
+     * settings and after that run the palette generation and saving
+     *
+     * @return bool Returns true always
+     */
     public function run()
     {
         if (empty($this->destination)) {
-            throw new Exception("No destination provided, can't save.")
+            throw new Exception("No destination provided, can't save.");
         }
 
-        $this->isImage();
         $this->getPalette();
         $this->save();
+
+        return true;
     }
 
     /**
      * getPalette
      * Returns colors used in an image specified in $filename
      *
-     * @return false
+     * @return array|bool If we get array that has colors return the array
      **/
     public function getPalette()
     {
         // We check for input
-        if (empty($this->filename)) {
-            throw new Exception("Image was not provided");
-
-            return false;
+        try {
+            if (empty($this->filename)) {
+                return false;
+            }
+        } catch (\Exception $e) {
+            throw new \Exception("Image was not provided");
         }
 
         // We check for readability
-        if (! is_readable($this->filename)) {
-            throw new Exception("Image {$this->filename} is not readable");
+        try {
+            if (! is_readable($this->filename)) {
+                throw new \Exception("Image {$this->filename} is not readable");
+                return false;
+            }
+        } catch (\Exception $e) {
+            user_error($e->getMessage(), E_USER_ERROR);
+        }
 
+
+        $this->colorsArray = $this->countColors();
+
+        if (! empty($this->colorsArray) and is_array($this->colorsArray)) {
+            return $this->colorsArray;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * countColors returns an array of colors in the image
+     * @return array Array of colors sorted by times used
+     */
+    private function countColors()
+    {
+        $this->precision = max(1, abs((int) $this->precision));
+        $colors          = array();
+        $size            = @getimagesize($this->filename);
+
+        if ($size === false) {
+            user_error("Unable to get image size data", E_USER_ERROR);
             return false;
         }
 
-        // We check is the file an image
-        if (! $this->isImage($this->filename)) {
+        $img = $this->imageTypeToResource();
 
-            throw new Exception("File given was not an image");
-
+        if (! $img && $img !== null) {
+            user_error("Unable to open: {$this->filename}", E_USER_ERROR);
             return false;
         }
 
-        $this->countColors($this->filename);
+        for ($x = 0; $x < $size[0]; $x += $this->precision) {
+            for ($y = 0; $y < $size[1]; $y += $this->precision) {
+                $thisColor  = imagecolorat($img, $x, $y);
+                $rgb        = imagecolorsforindex($img, $thisColor);
+                $red        = round(round(($rgb['red']      / 0x33)) * 0x33);
+                $green      = round(round(($rgb['green']    / 0x33)) * 0x33);
+                $blue       = round(round(($rgb['blue']     / 0x33)) * 0x33);
+                $thisRGB    = sprintf('%02X%02X%02X', $red, $green, $blue);
 
-        return false;
+                if (array_key_exists($thisRGB, $colors)) {
+                    $colors[$thisRGB]++;
+                } else {
+                    $colors[$thisRGB] = 1;
+                }
+            }
+        }
+        arsort($colors);
+        return array_slice($colors, 0, $this->returnColors, true);
     }
 
     /**
@@ -138,33 +194,71 @@ class Palette
      **/
     public function save()
     {
-        if (empty($this->destination)) {
-            throw new Exception("No destination given for save");
+        try {
+            if (empty($this->destination)) {
+                throw new \Exception("No destination given for save");
+            }
+        } catch (\Exception $e) {
+            user_error($e->getMessage(), E_USER_ERROR);
         }
-        if (empty($this->colorsArray)) {
-            throw new Exception("No colors to save");
+
+        try {
+            $destination_dir = dirname($this->destination);
+            if (! is_writable($destination_dir)) {
+                throw new \Exception("Destination directory not writable: {$destination_dir}");
+            }
+        } catch (\Exception $e) {
+            user_error($e->getMessage(), E_USER_ERROR);
+        }
+
+        try {
+            if (empty($this->colorsArray)) {
+                throw new \Exception("Couldn't detect colors from image");
+            }
+        } catch (\Exception $e) {
+            user_error($e->getMessage(), E_USER_ERROR);
         }
 
         // Encode for saving
         $colorsData = json_encode($this->colorsArray);
 
-        // Return the result of save operation
-        return file_put_contents($this->destination, $colorsData);
-    }
-
-    /**
-     * Check is given file an image
-     *
-     * @return boolean True for an image, false if not
-     */
-    private function isImage()
-    {
-        if (! empty(getimagesize($this->filename))) {
+        // Save and return the result of save operation
+        file_put_contents($this->destination, $colorsData);
+        if (is_readable($this->destination)) {
             return true;
         } else {
             return false;
         }
+    }
 
-        return false;
+    /**
+     * imageTypeToResource returns image resource
+     *
+     * Function takes $this->filename and returns
+     * imagecreatefrom{gif|jpeg|png} for further processing
+     *
+     * @return resource Image resource based on content
+     */
+    private function imageTypeToResource()
+    {
+        $type = exif_imagetype($this->filename);
+        switch ($type) {
+            case '1': // IMAGETYPE_GIF
+                $img = @imagecreatefromgif($this->filename);
+                break;
+            case '2': // IMAGETYPE_JPEG
+                $img = @imagecreatefromjpeg($this->filename);
+                break;
+            case '3': // IMAGETYPE_PNG
+                $img = @imagecreatefrompng($this->filename);
+                break;
+            default:
+                $image_type_code = image_type_to_mime_type($type);
+                user_error("Unknown image type: {$image_type_code} ({$type}): {$this->filename}");
+                return false;
+                break;
+        }
+
+        return $img;
     }
 }
