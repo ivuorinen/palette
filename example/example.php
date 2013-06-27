@@ -44,3 +44,6 @@ foreach ($testimages_controlled_process as $image) {
        . "</pre>\n";
 
 }
+
+echo "<h1>This one fails</h1>\n";
+$test = new \ivuorinen\Palette\Palette('/bin/sh');

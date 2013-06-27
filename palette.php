@@ -22,7 +22,8 @@ namespace ivuorinen\Palette;
  * @author   Ismo Vuorinen <ivuorinen@me.com>
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     https://github.com/ivuorinen/palette
- * @since    0.1.0
+ * @version  1.0.0
+ * @example  example/example.php Usage examples
  **/
 class Palette
 {
@@ -60,10 +61,11 @@ class Palette
     /**
      * Constructor
      *
+     * If you have specified $filename, Palette::run() gets triggered.
+     * Palette::run() uses default parameters and processes given image
+     * and saves the result as an json-file to datafiles -folder.
+     *
      * @param string $filename Full path to image
-     *
-     * @return null
-     *
      **/
     public function __construct($filename = null)
     {
@@ -144,23 +146,27 @@ class Palette
 
     /**
      * countColors returns an array of colors in the image
+     *
      * @return array Array of colors sorted by times used
      */
     private function countColors()
     {
         $this->precision = max(1, abs((int) $this->precision));
         $colors          = array();
-        $size            = @getimagesize($this->filename);
 
-        if ($size === false) {
-            user_error("Unable to get image size data", E_USER_ERROR);
-            return false;
-        }
-
+        // Test for image type
         $img = $this->imageTypeToResource();
 
         if (! $img && $img !== null) {
             user_error("Unable to open: {$this->filename}", E_USER_ERROR);
+            return false;
+        }
+
+        // Get image size and check if it's really an image
+        $size            = @getimagesize($this->filename);
+
+        if ($size === false) {
+            user_error("Unable to get image size data: {$this->filename}", E_USER_ERROR);
             return false;
         }
 
@@ -203,17 +209,14 @@ class Palette
         }
 
         try {
-            $destination_dir = dirname($this->destination);
-            if (! is_writable($destination_dir)) {
-                throw new \Exception("Destination directory not writable: {$destination_dir}");
-            }
+            $this->checkDestination();
         } catch (\Exception $e) {
             user_error($e->getMessage(), E_USER_ERROR);
         }
 
         try {
             if (empty($this->colorsArray)) {
-                throw new \Exception("Couldn't detect colors from image");
+                throw new \Exception("Couldn't detect colors from image: {$this->filename}");
             }
         } catch (\Exception $e) {
             user_error($e->getMessage(), E_USER_ERROR);
@@ -260,5 +263,51 @@ class Palette
         }
 
         return $img;
+    }
+
+    /**
+     * checkDestination tries to make sure you have directory to save to
+     *
+     * Tests done:
+     * - Does the destination folder exists?
+     * - Is it writable?
+     * - Can it be made writable?
+     *
+     * @return bool|exception True or false, with exceptions
+     */
+    private function checkDestination()
+    {
+        $destination_dir = dirname($this->destination);
+
+        // Test if we have destination directory
+        try {
+            if (! file_exists($destination_dir)) {
+                mkdir($destination_dir, 0755);
+            }
+
+            if (! file_exists($destination_dir)) {
+                throw new \Exception("Couldn't create missing destination dir: {$destination_dir}");
+            }
+        } catch (Exception $e) {
+            user_error($e->getMessage());
+            return false;
+        }
+
+        // Test if we can write to it
+        try {
+            if (! is_writable($destination_dir)) {
+                chmod($destination_dir, 0755);
+            } else {
+                return true;
+            }
+
+            if (! is_writable($destination_dir)) {
+                throw new \Exception("Destination directory not writable: {$destination_dir}");
+            }
+        } catch (\Exception $e) {
+            user_error($e->getMessage());
+        }
+
+        return true;
     }
 }
