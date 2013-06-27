@@ -15,7 +15,7 @@
         "issues": "https://github.com/ivuorinen/palette/issues"
     },
     "require": {
-        "php": ">=5.2.0",
+        "php": ">=5.2.0"
     },
     "extra": {
         "branch-alias": {
