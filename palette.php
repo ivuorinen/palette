@@ -82,6 +82,17 @@ class Palette
         }
     }
 
+    public function run()
+    {
+        if (empty($this->destination)) {
+            throw new Exception("No destination provided, can't save.")
+        }
+
+        $this->isImage();
+        $this->getPalette();
+        $this->save();
+    }
+
     /**
      * getPalette
      * Returns colors used in an image specified in $filename
