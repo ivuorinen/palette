@@ -1,5 +1,6 @@
 {
     "name": "ivuorinen/palette",
+    "description": "Get most used colors from an image",
     "keywords": ["image", "colors", "palette", "psr-2"],
     "homepage": "https://github.com/ivuorinen/palette",
     "type": "library",
@@ -14,12 +15,11 @@
         "source": "https://github.com/ivuorinen/palette",
         "issues": "https://github.com/ivuorinen/palette/issues"
     },
+    "autoload": {
+        "psr-0": { "ivuorinen\\Palette\\": "src/" },
+        "classmap": ["src/"]
+    },
     "require": {
         "php": ">=5.2.0"
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "master"
-        }
     }
 }

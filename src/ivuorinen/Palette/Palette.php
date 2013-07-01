@@ -1,16 +1,42 @@
 <?php
 /**
-* Palette
-* Parses image and returns most used colors
-*
-* PHP version 5
-*
-* @category Default
-* @package  Palette
-* @author   Ismo Vuorinen <ivuorinen@me.com>
-* @license  http://opensource.org/licenses/gpl-license.php GNU Public License
-* @link     https://github.com/ivuorinen/palette
-*/
+ * Palette
+ * Parses image and returns most used colors
+ *
+ * PHP version 5
+ *
+ * MIT License
+ * ===========
+ *
+ * Copyright (c) 2013 Ismo Vuorinen <ivuorinen@me.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *
+ * @category   Default
+ * @package    Palette
+ * @author     Ismo Vuorinen <ivuorinen@me.com>
+ * @license    http://www.opensource.org/licenses/mit-license.php  MIT License
+ * @copyright  2013 Ismo Vuorinen
+ * @link       https://github.com/ivuorinen/palette
+ */
 
 namespace ivuorinen\Palette;
 
@@ -20,7 +46,7 @@ namespace ivuorinen\Palette;
  * @category Default
  * @package  Palette
  * @author   Ismo Vuorinen <ivuorinen@me.com>
- * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @license  http://www.opensource.org/licenses/mit-license.php  MIT License
  * @link     https://github.com/ivuorinen/palette
  * @version  1.0.0
  * @example  example/example.php Usage examples
@@ -115,25 +141,23 @@ class Palette
      **/
     public function getPalette()
     {
-        // We check for input
         try {
-            if (empty($this->filename)) {
-                return false;
-            }
-        } catch (\Exception $e) {
-            throw new \Exception("Image was not provided");
-        }
 
-        // We check for readability
-        try {
+            // We check for input
+            if (empty($this->filename)) {
+                throw new \Exception("Image was not provided");
+            }
+
+            // We check for readability
             if (! is_readable($this->filename)) {
                 throw new \Exception("Image {$this->filename} is not readable");
-                return false;
             }
+
         } catch (\Exception $e) {
             user_error($e->getMessage(), E_USER_ERROR);
-        }
 
+            return false;
+        }
 
         $this->colorsArray = $this->countColors();
 
@@ -159,6 +183,7 @@ class Palette
 
         if (! $img && $img !== null) {
             user_error("Unable to open: {$this->filename}", E_USER_ERROR);
+
             return false;
         }
 
@@ -167,6 +192,7 @@ class Palette
 
         if ($size === false) {
             user_error("Unable to get image size data: {$this->filename}", E_USER_ERROR);
+
             return false;
         }
 
@@ -187,6 +213,7 @@ class Palette
             }
         }
         arsort($colors);
+
         return array_slice($colors, 0, $this->returnColors, true);
     }
 
@@ -201,25 +228,24 @@ class Palette
     public function save()
     {
         try {
+
+            // Check for destination
             if (empty($this->destination)) {
                 throw new \Exception("No destination given for save");
             }
-        } catch (\Exception $e) {
-            user_error($e->getMessage(), E_USER_ERROR);
-        }
 
-        try {
+            // Check destination writability
             $this->checkDestination();
-        } catch (\Exception $e) {
-            user_error($e->getMessage(), E_USER_ERROR);
-        }
 
-        try {
+            // Check for data we should write
             if (empty($this->colorsArray)) {
                 throw new \Exception("Couldn't detect colors from image: {$this->filename}");
             }
+
         } catch (\Exception $e) {
             user_error($e->getMessage(), E_USER_ERROR);
+
+            return false;
         }
 
         // Encode for saving
@@ -258,6 +284,7 @@ class Palette
             default:
                 $image_type_code = image_type_to_mime_type($type);
                 user_error("Unknown image type: {$image_type_code} ({$type}): {$this->filename}");
+
                 return false;
                 break;
         }
@@ -290,6 +317,7 @@ class Palette
             }
         } catch (Exception $e) {
             user_error($e->getMessage());
+
             return false;
         }
 
