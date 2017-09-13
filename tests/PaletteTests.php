@@ -2,17 +2,31 @@
 
 class PaletteTests extends \PHPUnit_Framework_TestCase
 {
-    public $palette;
-
     public function test_class_is_found_and_has_default_attributes()
     {
-        $this->palette = new \ivuorinen\Palette\Palette();
-        $this->assertInstanceOf('ivuorinen\Palette\Palette', $this->palette);
+        $palette = new \ivuorinen\Palette\Palette();
+        $this->assertInstanceOf('ivuorinen\Palette\Palette', $palette);
 
-        $this->assertInternalType('integer', $this->palette->precision);
-        $this->assertInternalType('integer', $this->palette->returnColors);
-        $this->assertInternalType('array', $this->palette->colorsArray);
-        $this->assertInternalType('null', $this->palette->filename);
-        $this->assertInternalType('string', $this->palette->destination);
+        $this->assertInternalType('integer', $palette->precision);
+        $this->assertInternalType('integer', $palette->returnColors);
+        $this->assertInternalType('array', $palette->colorsArray);
+        $this->assertInternalType('null', $palette->filename);
+        $this->assertInternalType('string', $palette->destination);
+    }
+
+    public function test_known_images()
+    {
+        $location = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR;
+        $images = ['black.png' => '000000', 'red.png' => 'CC3333'];
+
+        foreach ($images as $imageFile => $hex) {
+            $image = $location . $imageFile;
+            $this->assertTrue(file_exists($image));
+
+            $palette = new \ivuorinen\Palette\Palette($image);
+            $this->assertCount(1, $palette->colorsArray);
+            $this->assertArrayHasKey($hex, $palette->colorsArray);
+            $this->assertEquals($image, $palette->filename);            
+        }
     }
 }
