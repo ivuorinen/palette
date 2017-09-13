@@ -3,8 +3,6 @@
  * Palette
  * Parses image and returns most used colors
  *
- * PHP version 5
- *
  * MIT License
  * ===========
  *
@@ -163,9 +161,9 @@ class Palette
 
         if (! empty($this->colorsArray) and is_array($this->colorsArray)) {
             return $this->colorsArray;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**
@@ -255,9 +253,8 @@ class Palette
         file_put_contents($this->destination, $colorsData);
         if (is_readable($this->destination)) {
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -323,11 +320,10 @@ class Palette
 
         // Test if we can write to it
         try {
-            if (! is_writable($destination_dir)) {
-                chmod($destination_dir, 0755);
-            } else {
+            if (is_writable($destination_dir)) {
                 return true;
             }
+            chmod($destination_dir, 0755);
 
             if (! is_writable($destination_dir)) {
                 throw new \Exception("Destination directory not writable: {$destination_dir}");

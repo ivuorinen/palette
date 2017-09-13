@@ -1,4 +1,4 @@
-Palette
+Palette [![Build Status](https://travis-ci.org/ivuorinen/palette.svg?branch=master)](https://travis-ci.org/ivuorinen/palette)
 =======
 
 Palette is a PHP class that takes your images and returns used colors, sorts them by usage and saves the results.
