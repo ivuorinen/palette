@@ -2,3 +2,13 @@ language: php
 php:
   - '5.6'
   - '7.1'
+cache:
+  directories:
+    - $HOME/.composer/cache/files
+before_script:
+  - composer require "satooshi/php-coveralls=~0.7" --prefer-dist --no-interaction --dev
+  - composer install
+script:
+  - ./vendor/bin/phpunit -c phpunit.xml --coverage-clover build/logs/clover.xml
+after_script:
+  - php vendor/bin/coveralls -v
