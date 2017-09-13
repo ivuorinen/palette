@@ -6,7 +6,7 @@ cache:
   directories:
     - $HOME/.composer/cache/files
 before_script:
-  - composer require "satooshi/php-coveralls=~0.7" --prefer-dist --no-interaction --dev
+  - composer require php-coveralls/php-coveralls
   - composer install
 script:
   - ./vendor/bin/phpunit -c phpunit.xml --coverage-clover build/logs/clover.xml
