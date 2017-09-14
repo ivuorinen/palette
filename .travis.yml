@@ -1,13 +1,11 @@
 language: php
 php:
-  - 5.5
   - 5.6
   - 7.0
   - 7.1
   - nightly
 matrix:
   allow_failures:
-    - php: 5.5
     - php: 5.6
     - php: nightly
   fast_finish: true

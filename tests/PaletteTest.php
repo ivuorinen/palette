@@ -1,6 +1,6 @@
 <?php
 
-class PaletteTests extends \PHPUnit_Framework_TestCase
+class PaletteTest extends \PHPUnit_Framework_TestCase
 {
     public function test_class_is_found_and_has_default_attributes()
     {
@@ -16,7 +16,7 @@ class PaletteTests extends \PHPUnit_Framework_TestCase
 
     public function test_known_images()
     {
-        $location = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR;
+        $location = __DIR__ . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR;
         $images = ['black.png' => '000000', 'red.png' => 'CC3333'];
 
         foreach ($images as $imageFile => $hex) {
