@@ -28,8 +28,6 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  *
- * @category   Default
- * @package    Palette
  * @author     Ismo Vuorinen <ivuorinen@me.com>
  * @license    http://www.opensource.org/licenses/mit-license.php  MIT License
  * @copyright  2013 Ismo Vuorinen
@@ -44,7 +42,6 @@ namespace ivuorinen\Palette;
  * @author   Ismo Vuorinen <ivuorinen@me.com>
  * @license  http://www.opensource.org/licenses/mit-license.php  MIT License
  * @link     https://github.com/ivuorinen/palette
- * @example  example/example.php Usage examples
  **/
 class Palette
 {

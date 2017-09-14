@@ -30,6 +30,21 @@ class PaletteTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function test_known_images_with_many_colors()
+    {
+        $location = __DIR__ . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR;
+        $images = ['example.gif', 'example.jpg', 'example.png'];
+
+        foreach ($images as $imageFile) {
+            $image = $location . $imageFile;
+            $this->assertFileExists($image);
+
+            $palette = new \ivuorinen\Palette\Palette($image);
+            $this->assertCount(10, $palette->colorsArray);
+            $this->assertEquals($image, $palette->filename);
+        }
+    }
+
     public function test_failure_no_image()
     {
         $palette = new \ivuorinen\Palette\Palette('');
