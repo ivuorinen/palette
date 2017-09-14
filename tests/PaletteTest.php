@@ -21,7 +21,7 @@ class PaletteTest extends \PHPUnit_Framework_TestCase
 
         foreach ($images as $imageFile => $hex) {
             $image = $location . $imageFile;
-            $this->assertTrue(file_exists($image));
+            $this->assertFileExists($image);
 
             $palette = new \ivuorinen\Palette\Palette($image);
             $this->assertCount(1, $palette->colorsArray);

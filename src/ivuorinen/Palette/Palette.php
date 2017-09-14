@@ -41,45 +41,26 @@ namespace ivuorinen\Palette;
 /**
  * Palette
  *
- * @category Default
- * @package  Palette
  * @author   Ismo Vuorinen <ivuorinen@me.com>
  * @license  http://www.opensource.org/licenses/mit-license.php  MIT License
  * @link     https://github.com/ivuorinen/palette
- * @version  1.0.0
  * @example  example/example.php Usage examples
  **/
 class Palette
 {
-    /**
-     * Precision of palette, higher is more precise
-     * @var int
-     */
+    /** @var int Precision of palette, higher is more precise */
     public $precision;
 
-    /**
-     * Number of colors to return
-     * @var int
-     */
+    /** @var int Number of colors to return */
     public $returnColors;
 
-    /**
-     * Array of colors we use internally
-     * @var array
-     */
+    /** @var array Array of colors we use internally */
     public $colorsArray;
 
-    /**
-     * Full path to image file name
-     * @var string
-     */
+    /** @var string Full path to image file name */
     public $filename;
 
-    /**
-     * Destination for .json-file, full path and filename
-     *
-     * @var string
-     **/
+    /** @var string Destination for .json-file, full path and filename */
     public $destination;
 
     /**
@@ -90,23 +71,25 @@ class Palette
      * and saves the result as an json-file to datafiles -folder.
      *
      * @param string $filename Full path to image
-     **/
+     *
+     * @throws \Exception
+     */
     public function __construct($filename = null)
     {
         // Define shortcut to directory separator
-        if (! defined('DS')) {
-            define("DS", DIRECTORY_SEPARATOR);
+        if (!defined('DS')) {
+            define('DS', DIRECTORY_SEPARATOR);
         }
 
-        $this->precision    = 10;
+        $this->precision = 10;
         $this->returnColors = 10;
-        $this->colorsArray  = array();
-        $this->filename     = $filename;
-        $this->destination  = dirname(__FILE__)
-                                . DS . 'datafiles'
-                                . DS . basename($filename) . '.json';
+        $this->colorsArray = array();
+        $this->filename = $filename;
+        $this->destination = __DIR__
+            . DS . 'datafiles'
+            . DS . basename($filename) . '.json';
 
-        if (! empty($this->filename)) {
+        if (!empty($this->filename)) {
             $this->run();
         }
     }
@@ -118,11 +101,12 @@ class Palette
      * settings and after that run the palette generation and saving
      *
      * @return bool Returns true always
+     * @throws \Exception
      */
     public function run()
     {
         if (empty($this->destination)) {
-            throw new Exception("No destination provided, can't save.");
+            throw new \ErrorException("No destination provided, can't save.");
         }
 
         $this->getPalette();
@@ -136,22 +120,23 @@ class Palette
      * Returns colors used in an image specified in $filename
      *
      * @return array|bool If we get array that has colors return the array
-     **/
+     * @throws \Exception
+     */
     public function getPalette()
     {
         try {
 
             // We check for input
             if (empty($this->filename)) {
-                throw new \Exception("Image was not provided");
+                throw new \ErrorException('Image was not provided');
             }
 
             // We check for readability
-            if (! is_readable($this->filename)) {
-                throw new \Exception("Image {$this->filename} is not readable");
+            if (!is_readable($this->filename)) {
+                throw new \ErrorException("Image {$this->filename} is not readable");
             }
 
-        } catch (\Exception $e) {
+        } catch (\ErrorException $e) {
             user_error($e->getMessage(), E_USER_ERROR);
 
             return false;
@@ -159,7 +144,7 @@ class Palette
 
         $this->colorsArray = $this->countColors();
 
-        if (! empty($this->colorsArray) and is_array($this->colorsArray)) {
+        if (!empty($this->colorsArray) && is_array($this->colorsArray)) {
             return $this->colorsArray;
         }
 
@@ -169,24 +154,24 @@ class Palette
     /**
      * countColors returns an array of colors in the image
      *
-     * @return array Array of colors sorted by times used
+     * @return array|boolean Array of colors sorted by times used
      */
     private function countColors()
     {
-        $this->precision = max(1, abs((int) $this->precision));
-        $colors          = array();
+        $this->precision = max(1, abs((int)$this->precision));
+        $colors = array();
 
         // Test for image type
         $img = $this->imageTypeToResource();
 
-        if (! $img && $img !== null) {
+        if (!$img && $img !== null) {
             user_error("Unable to open: {$this->filename}", E_USER_ERROR);
 
             return false;
         }
 
         // Get image size and check if it's really an image
-        $size            = @getimagesize($this->filename);
+        $size = @getimagesize($this->filename);
 
         if ($size === false) {
             user_error("Unable to get image size data: {$this->filename}", E_USER_ERROR);
@@ -194,14 +179,16 @@ class Palette
             return false;
         }
 
+        // This is pretty naive approach,
+        // but looping through the image is only way I thought of
         for ($x = 0; $x < $size[0]; $x += $this->precision) {
             for ($y = 0; $y < $size[1]; $y += $this->precision) {
-                $thisColor  = imagecolorat($img, $x, $y);
-                $rgb        = imagecolorsforindex($img, $thisColor);
-                $red        = round(round(($rgb['red']      / 0x33)) * 0x33);
-                $green      = round(round(($rgb['green']    / 0x33)) * 0x33);
-                $blue       = round(round(($rgb['blue']     / 0x33)) * 0x33);
-                $thisRGB    = sprintf('%02X%02X%02X', $red, $green, $blue);
+                $thisColor = imagecolorat($img, $x, $y);
+                $rgb = imagecolorsforindex($img, $thisColor);
+                $red = round(round($rgb['red'] / 0x33) * 0x33);
+                $green = round(round($rgb['green'] / 0x33) * 0x33);
+                $blue = round(round($rgb['blue'] / 0x33) * 0x33);
+                $thisRGB = sprintf('%02X%02X%02X', $red, $green, $blue);
 
                 if (array_key_exists($thisRGB, $colors)) {
                     $colors[$thisRGB]++;
@@ -219,17 +206,15 @@ class Palette
      * save
      * Get array of colors, json_encode it and save to destination
      *
-     * @param string $destination Where to save json-file
-     *
-     * @return false
-     **/
+     * @return bool
+     * @throws \Exception
+     */
     public function save()
     {
         try {
-
             // Check for destination
             if (empty($this->destination)) {
-                throw new \Exception("No destination given for save");
+                throw new \InvalidArgumentException('No destination given for save');
             }
 
             // Check destination writability
@@ -237,10 +222,10 @@ class Palette
 
             // Check for data we should write
             if (empty($this->colorsArray)) {
-                throw new \Exception("Couldn't detect colors from image: {$this->filename}");
+                throw new \ErrorException("Couldn't detect colors from image: {$this->filename}");
             }
 
-        } catch (\Exception $e) {
+        } catch (\ErrorException $e) {
             user_error($e->getMessage(), E_USER_ERROR);
 
             return false;
@@ -251,10 +236,8 @@ class Palette
 
         // Save and return the result of save operation
         file_put_contents($this->destination, $colorsData);
-        if (is_readable($this->destination)) {
-            return true;
-        }
-        return false;
+
+        return is_readable($this->destination);
     }
 
     /**
@@ -270,23 +253,17 @@ class Palette
         $type = exif_imagetype($this->filename);
         switch ($type) {
             case '1': // IMAGETYPE_GIF
-                $img = @imagecreatefromgif($this->filename);
-                break;
+                return @imagecreatefromgif($this->filename);
             case '2': // IMAGETYPE_JPEG
-                $img = @imagecreatefromjpeg($this->filename);
-                break;
+                return @imagecreatefromjpeg($this->filename);
             case '3': // IMAGETYPE_PNG
-                $img = @imagecreatefrompng($this->filename);
-                break;
+                return @imagecreatefrompng($this->filename);
             default:
                 $image_type_code = image_type_to_mime_type($type);
                 user_error("Unknown image type: {$image_type_code} ({$type}): {$this->filename}");
 
                 return false;
-                break;
         }
-
-        return $img;
     }
 
     /**
@@ -297,7 +274,8 @@ class Palette
      * - Is it writable?
      * - Can it be made writable?
      *
-     * @return bool|exception True or false, with exceptions
+     * @return boolean True or false, with exceptions
+     * @throws \Exception
      */
     private function checkDestination()
     {
@@ -305,14 +283,10 @@ class Palette
 
         // Test if we have destination directory
         try {
-            if (! file_exists($destination_dir)) {
-                mkdir($destination_dir, 0755);
+            if (!@mkdir($destination_dir, 0755) && !is_dir($destination_dir)) {
+                throw new \ErrorException("Couldn't create missing destination dir: {$destination_dir}");
             }
-
-            if (! file_exists($destination_dir)) {
-                throw new \Exception("Couldn't create missing destination dir: {$destination_dir}");
-            }
-        } catch (Exception $e) {
+        } catch (\ErrorException $e) {
             user_error($e->getMessage());
 
             return false;
@@ -325,10 +299,10 @@ class Palette
             }
             chmod($destination_dir, 0755);
 
-            if (! is_writable($destination_dir)) {
-                throw new \Exception("Destination directory not writable: {$destination_dir}");
+            if (!is_writable($destination_dir)) {
+                throw new \ErrorException("Destination directory not writable: {$destination_dir}");
             }
-        } catch (\Exception $e) {
+        } catch (\ErrorException $e) {
             user_error($e->getMessage());
         }
 
