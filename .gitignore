@@ -1,3 +1,4 @@
 *.json
+composer.lock
 !composer.json
 vendor
