@@ -29,4 +29,21 @@ class PaletteTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals($image, $palette->filename);
         }
     }
+
+    public function test_failure_no_image()
+    {
+        $palette = new \ivuorinen\Palette\Palette('');
+        $this->expectException(ErrorException::class);
+        $this->expectExceptionMessage('Image was not provided');
+        $palette->getPalette();
+    }
+
+    public function test_failure_not_an_image()
+    {
+        $palette = new \ivuorinen\Palette\Palette();
+        $palette->filename = 'NOT_HERE';
+        $this->expectException(ErrorException::class);
+        $this->expectExceptionMessage('Image ' . $palette->filename . ' is not readable');
+        $palette->getPalette();
+    }
 }
