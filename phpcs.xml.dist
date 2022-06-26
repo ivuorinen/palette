@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ruleset
+        name="PHP_CodeSniffer"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd"
+>
+    <description>PHP Code Sniffer configuration file.</description>
+
+    <file>.</file>
+
+    <arg name="basepath" value="."/>
+    <arg name="colors"/>
+    <arg name="extensions" value="php"/>
+    <arg name="parallel" value="10"/>
+
+    <!-- base rule: set to PSR12-->
+    <!-- https://www.php-fig.org/psr/psr-12/ -->
+    <rule ref="PSR12">
+        <exclude-pattern>*/vendor/*</exclude-pattern>
+    </rule>
+</ruleset>
