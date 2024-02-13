@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class PaletteTest extends TestCase
 {
-    public function testClassIsFoundAndHasDefaultAttributes()
+    public function testClassIsFoundAndHasDefaultAttributes(): void
     {
         $palette = new \ivuorinen\Palette\Palette();
         $this->assertInstanceOf('ivuorinen\Palette\Palette', $palette);
@@ -18,7 +18,7 @@ class PaletteTest extends TestCase
         $this->assertIsString($palette->destination);
     }
 
-    public function testKnownImagesWithOneColor()
+    public function testKnownImagesWithOneColor(): void
     {
         $location = __DIR__ . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR;
         $images   = [ 'black.png' => '000000', 'red.png' => 'CC3333' ];
@@ -34,7 +34,7 @@ class PaletteTest extends TestCase
         }
     }
 
-    public function testKnownImagesWithManyColors()
+    public function testKnownImagesWithManyColors(): void
     {
         $location = __DIR__ . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR;
         $images   = [ 'example.gif', 'example.jpg', 'example.png' ];
@@ -49,7 +49,7 @@ class PaletteTest extends TestCase
         }
     }
 
-    public function testFailureNoImage()
+    public function testFailureNoImage(): void
     {
         $palette = new \ivuorinen\Palette\Palette('');
         $this->expectException(\ErrorException::class);
@@ -57,7 +57,7 @@ class PaletteTest extends TestCase
         $palette->getPalette();
     }
 
-    public function testFailureNotAnImage()
+    public function testFailureNotAnImage(): void
     {
         $palette           = new \ivuorinen\Palette\Palette();
         $palette->filename = 'NOT_HERE';

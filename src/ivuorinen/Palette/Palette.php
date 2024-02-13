@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Palette
  * Parses image and returns most used colors
@@ -36,6 +37,8 @@
 
 namespace ivuorinen\Palette;
 
+use GdImage;
+
 /**
  * Palette
  *
@@ -46,16 +49,16 @@ namespace ivuorinen\Palette;
 class Palette
 {
     /** @var int Precision of palette, higher is more precise */
-    public $precision;
+    public int $precision;
 
     /** @var int Number of colors to return */
-    public $returnColors;
+    public int $returnColors;
 
     /** @var array Array of colors we use internally */
-    public $colorsArray;
+    public array $colorsArray;
 
     /** @var string Full path to image file name */
-    public $filename;
+    public ?string $filename;
 
     /** @var string Destination for .json-file, full path and filename */
     public $destination;
@@ -71,7 +74,7 @@ class Palette
      *
      * @throws \Exception
      */
-    public function __construct($filename = null)
+    public function __construct(string $filename = null)
     {
         // Define shortcut to directory separator
         if (!defined('DS')) {
@@ -100,7 +103,7 @@ class Palette
      * @return bool Returns true always
      * @throws \Exception
      */
-    public function run()
+    public function run(): bool
     {
         if (empty($this->destination)) {
             throw new \ErrorException("No destination provided, can't save.");
@@ -119,7 +122,7 @@ class Palette
      * @return array|bool If we get array that has colors return the array
      * @throws \Exception
      */
-    public function getPalette()
+    public function getPalette(): array|bool
     {
         // We check for input
         if (empty($this->filename)) {
@@ -143,10 +146,10 @@ class Palette
     /**
      * countColors returns an array of colors in the image
      *
-     * @return array|boolean Array of colors sorted by times used
+     * @return array Array of colors sorted by times used
      * @throws \ErrorException
      */
-    private function countColors()
+    private function countColors(): array
     {
         $this->precision = max(1, abs((int)$this->precision));
         $colors = array();
@@ -185,7 +188,7 @@ class Palette
         }
         arsort($colors);
 
-        return array_slice($colors, 0, $this->returnColors, true);
+        return (array) array_slice($colors, 0, $this->returnColors, true);
     }
 
     /**
@@ -195,7 +198,7 @@ class Palette
      * @return bool
      * @throws \Exception
      */
-    public function save()
+    public function save(): bool
     {
         // Check for destination
         if (empty($this->destination)) {
@@ -225,10 +228,10 @@ class Palette
      * Function takes $this->filename and returns
      * imagecreatefrom{gif|jpeg|png} for further processing
      *
-     * @return resource Image resource based on content
+     * @return GdImage Image resource based on content
      * @throws \ErrorException
      */
-    private function imageTypeToResource()
+    private function imageTypeToResource(): GdImage
     {
         try {
             if (filesize($this->filename) < 12) {
@@ -241,11 +244,11 @@ class Palette
 
         switch ($type) {
             case '1': // IMAGETYPE_GIF
-                return @imagecreatefromgif($this->filename);
+                return @\imagecreatefromgif($this->filename);
             case '2': // IMAGETYPE_JPEG
-                return @imagecreatefromjpeg($this->filename);
+                return @\imagecreatefromjpeg($this->filename);
             case '3': // IMAGETYPE_PNG
-                return @imagecreatefrompng($this->filename);
+                return @\imagecreatefrompng($this->filename);
             default:
                 $image_type_code = image_type_to_mime_type($type);
                 throw new \ErrorException("Unknown image type: {$image_type_code} ({$type}): {$this->filename}");
@@ -263,7 +266,7 @@ class Palette
      * @return boolean True or false, with exceptions
      * @throws \Exception
      */
-    private function checkDestination()
+    private function checkDestination(): bool
     {
         $destination_dir = dirname($this->destination);
 
