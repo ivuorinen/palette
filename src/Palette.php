@@ -61,7 +61,7 @@ class Palette
     public ?string $filename;
 
     /** @var string Destination for .json-file, full path and filename */
-    public $destination;
+    public string $destination;
 
     /**
      * Constructor
@@ -74,7 +74,7 @@ class Palette
      *
      * @throws \Exception
      */
-    public function __construct(string $filename = null)
+    public function __construct(string $filename)
     {
         // Define shortcut to directory separator
         if (!defined('DS')) {
@@ -151,15 +151,11 @@ class Palette
      */
     private function countColors(): array
     {
-        $this->precision = max(1, abs((int)$this->precision));
+        $this->precision = max(1, abs($this->precision));
         $colors = array();
 
         // Test for image type
         $img = $this->imageTypeToResource();
-
-        if (!$img && $img !== null) {
-            throw new \ErrorException("Unable to open: {$this->filename}");
-        }
 
         // Get image size and check if it's really an image
         $size = @getimagesize($this->filename);
@@ -169,7 +165,7 @@ class Palette
         }
 
         // This is pretty naive approach,
-        // but looping through the image is only way I thought of
+        // but looping through the image is the only way I thought of
         for ($x = 0; $x < $size[0]; $x += $this->precision) {
             for ($y = 0; $y < $size[1]; $y += $this->precision) {
                 $thisColor = imagecolorat($img, $x, $y);
@@ -188,7 +184,7 @@ class Palette
         }
         arsort($colors);
 
-        return (array) array_slice($colors, 0, $this->returnColors, true);
+        return array_slice($colors, 0, $this->returnColors, true);
     }
 
     /**
@@ -205,7 +201,7 @@ class Palette
             throw new \InvalidArgumentException('No destination given for save');
         }
 
-        // Check destination writability
+        // Check destination for write permissions
         $this->checkDestination();
 
         // Check for data we should write
@@ -214,7 +210,7 @@ class Palette
         }
 
         // Encode for saving
-        $colorsData = json_encode($this->colorsArray);
+        $colorsData = json_encode($this->colorsArray, JSON_THROW_ON_ERROR);
 
         // Save and return the result of save operation
         file_put_contents($this->destination, $colorsData);
