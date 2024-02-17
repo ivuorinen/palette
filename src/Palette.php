@@ -38,6 +38,7 @@
 namespace ivuorinen\Palette;
 
 use GdImage;
+use ivuorinen\Palette\Exceptions\GenericException;
 
 /**
  * Palette
@@ -106,7 +107,7 @@ class Palette
     public function run(): bool
     {
         if (empty($this->destination)) {
-            throw new \ErrorException("No destination provided, can't save.");
+            throw new GenericException("No destination provided, can't save.");
         }
 
         $this->getPalette();
@@ -126,12 +127,12 @@ class Palette
     {
         // We check for input
         if (empty($this->filename)) {
-            throw new \ErrorException('Image was not provided');
+            throw new GenericException('Image was not provided');
         }
 
         // We check for readability
         if (!is_readable($this->filename)) {
-            throw new \ErrorException("Image {$this->filename} is not readable");
+            throw new GenericException("Image {$this->filename} is not readable");
         }
 
         $this->colorsArray = $this->countColors();
@@ -147,7 +148,7 @@ class Palette
      * countColors returns an array of colors in the image
      *
      * @return array Array of colors sorted by times used
-     * @throws \ErrorException
+     * @throws GenericException
      */
     private function countColors(): array
     {
@@ -161,7 +162,7 @@ class Palette
         $size = @getimagesize($this->filename);
 
         if ($size === false) {
-            throw new \ErrorException("Unable to get image size data: {$this->filename}");
+            throw new GenericException("Unable to get image size data: {$this->filename}");
         }
 
         // This is pretty naive approach,
@@ -206,7 +207,7 @@ class Palette
 
         // Check for data we should write
         if (empty($this->colorsArray)) {
-            throw new \ErrorException("Couldn't detect colors from image: {$this->filename}");
+            throw new GenericException("Couldn't detect colors from image: {$this->filename}");
         }
 
         // Encode for saving
@@ -225,17 +226,17 @@ class Palette
      * imagecreatefrom{gif|jpeg|png} for further processing
      *
      * @return GdImage Image resource based on content
-     * @throws \ErrorException
+     * @throws GenericException
      */
     private function imageTypeToResource(): GdImage
     {
         try {
             if (filesize($this->filename) < 12) {
-                throw new \ErrorException('File size smaller than 12');
+                throw new GenericException('File size smaller than 12');
             }
             $type = exif_imagetype($this->filename);
         } catch (\Exception $e) {
-            throw new \ErrorException($e->getMessage());
+            throw new GenericException($e->getMessage());
         }
 
         switch ($type) {
@@ -247,7 +248,7 @@ class Palette
                 return @\imagecreatefrompng($this->filename);
             default:
                 $image_type_code = image_type_to_mime_type($type);
-                throw new \ErrorException("Unknown image type: {$image_type_code} ({$type}): {$this->filename}");
+                throw new GenericException("Unknown image type: {$image_type_code} ({$type}): {$this->filename}");
         }
     }
 
@@ -268,7 +269,7 @@ class Palette
 
         // Test if we have destination directory
         if (!@mkdir($destination_dir, 0755) && !is_dir($destination_dir)) {
-            throw new \ErrorException("Couldn't create missing destination dir: {$destination_dir}");
+            throw new GenericException("Couldn't create missing destination dir: {$destination_dir}");
         }
 
         // Test if we can write to it
@@ -278,7 +279,7 @@ class Palette
         chmod($destination_dir, 0755);
 
         if (!is_writable($destination_dir)) {
-            throw new \ErrorException("Destination directory not writable: {$destination_dir}");
+            throw new GenericException("Destination directory not writable: {$destination_dir}");
         }
 
         return true;
