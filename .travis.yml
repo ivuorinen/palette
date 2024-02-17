@@ -1,25 +1,22 @@
 language: php
 php:
-  - 5.6
-  - 7.0
-  - 7.1
-  - nightly
+    - 8.3
+    - nightly
 matrix:
-  allow_failures:
-    - php: 5.6
-    - php: nightly
-  fast_finish: true
+    allow_failures:
+        - php: nightly
+    fast_finish: true
 cache:
-  directories:
-    - $HOME/.composer/cache/files
+    directories:
+        - $HOME/.composer/cache/files
 before_script:
-  - phpenv global "$TRAVIS_PHP_VERSION"
-  - composer config extra.platform.php $TRAVIS_PHP_VERSION
-  - composer require php-coveralls/php-coveralls
+    - phpenv global "$TRAVIS_PHP_VERSION"
+    - composer config extra.platform.php $TRAVIS_PHP_VERSION
+    - composer require php-coveralls/php-coveralls
 install:
-  - flags="--ansi --prefer-dist --no-interaction --optimize-autoloader --no-suggest --no-progress"
-  - composer install $flags
+    - flags="--ansi --prefer-dist --no-interaction --optimize-autoloader --no-suggest --no-progress"
+    - composer install $flags
 script:
-  - ./vendor/bin/phpunit -c phpunit.xml --coverage-clover build/logs/clover.xml
+    - ./vendor/bin/phpunit -c phpunit.xml --coverage-clover build/logs/clover.xml
 after_script:
-  - php vendor/bin/coveralls -v
+    - php vendor/bin/coveralls -v
