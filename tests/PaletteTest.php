@@ -6,22 +6,22 @@ use PHPUnit\Framework\TestCase;
 
 class PaletteTest extends TestCase
 {
-    public function testClassIsFoundAndHasDefaultAttributes()
+    public function testClassIsFoundAndHasDefaultAttributes(): void
     {
-        $palette = new \ivuorinen\Palette\Palette();
+        $palette = new \ivuorinen\Palette\Palette('');
         $this->assertInstanceOf('ivuorinen\Palette\Palette', $palette);
 
         $this->assertIsInt($palette->precision);
         $this->assertIsInt($palette->returnColors);
         $this->assertIsArray($palette->colorsArray);
-        $this->assertNull($palette->filename);
+        $this->assertIsString($palette->filename);
         $this->assertIsString($palette->destination);
     }
 
-    public function testKnownImagesWithOneColor()
+    public function testKnownImagesWithOneColor(): void
     {
         $location = __DIR__ . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR;
-        $images   = [ 'black.png' => '000000', 'red.png' => 'CC3333' ];
+        $images = ['black.png' => '000000', 'red.png' => 'CC3333'];
 
         foreach ($images as $imageFile => $hex) {
             $image = $location . $imageFile;
@@ -34,10 +34,10 @@ class PaletteTest extends TestCase
         }
     }
 
-    public function testKnownImagesWithManyColors()
+    public function testKnownImagesWithManyColors(): void
     {
         $location = __DIR__ . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR;
-        $images   = [ 'example.gif', 'example.jpg', 'example.png' ];
+        $images = ['example.gif', 'example.jpg', 'example.png'];
 
         foreach ($images as $imageFile) {
             $image = $location . $imageFile;
@@ -49,7 +49,7 @@ class PaletteTest extends TestCase
         }
     }
 
-    public function testFailureNoImage()
+    public function testFailureNoImage(): void
     {
         $palette = new \ivuorinen\Palette\Palette('');
         $this->expectException(\ErrorException::class);
@@ -57,11 +57,11 @@ class PaletteTest extends TestCase
         $palette->getPalette();
     }
 
-    public function testFailureNotAnImage()
+    public function testFailureNotAnImage(): void
     {
-        $palette           = new \ivuorinen\Palette\Palette();
-        $palette->filename = 'NOT_HERE';
         $this->expectException(\ErrorException::class);
+
+        $palette = new \ivuorinen\Palette\Palette('NOT_HERE');
         $this->expectExceptionMessage('Image ' . $palette->filename . ' is not readable');
 
         $palette->getPalette();

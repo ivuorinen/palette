@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Palette
  * Parses image and returns most used colors
@@ -36,6 +37,9 @@
 
 namespace ivuorinen\Palette;
 
+use GdImage;
+use ivuorinen\Palette\Exceptions\GenericException;
+
 /**
  * Palette
  *
@@ -46,19 +50,19 @@ namespace ivuorinen\Palette;
 class Palette
 {
     /** @var int Precision of palette, higher is more precise */
-    public $precision;
+    public int $precision;
 
     /** @var int Number of colors to return */
-    public $returnColors;
+    public int $returnColors;
 
     /** @var array Array of colors we use internally */
-    public $colorsArray;
+    public array $colorsArray;
 
     /** @var string Full path to image file name */
-    public $filename;
+    public ?string $filename;
 
     /** @var string Destination for .json-file, full path and filename */
-    public $destination;
+    public string $destination;
 
     /**
      * Constructor
@@ -71,7 +75,7 @@ class Palette
      *
      * @throws \Exception
      */
-    public function __construct($filename = null)
+    public function __construct(string $filename)
     {
         // Define shortcut to directory separator
         if (!defined('DS')) {
@@ -100,10 +104,10 @@ class Palette
      * @return bool Returns true always
      * @throws \Exception
      */
-    public function run()
+    public function run(): bool
     {
         if (empty($this->destination)) {
-            throw new \ErrorException("No destination provided, can't save.");
+            throw new GenericException("No destination provided, can't save.");
         }
 
         $this->getPalette();
@@ -119,16 +123,16 @@ class Palette
      * @return array|bool If we get array that has colors return the array
      * @throws \Exception
      */
-    public function getPalette()
+    public function getPalette(): array|bool
     {
         // We check for input
         if (empty($this->filename)) {
-            throw new \ErrorException('Image was not provided');
+            throw new GenericException('Image was not provided');
         }
 
         // We check for readability
         if (!is_readable($this->filename)) {
-            throw new \ErrorException("Image {$this->filename} is not readable");
+            throw new GenericException("Image {$this->filename} is not readable");
         }
 
         $this->colorsArray = $this->countColors();
@@ -143,30 +147,26 @@ class Palette
     /**
      * countColors returns an array of colors in the image
      *
-     * @return array|boolean Array of colors sorted by times used
-     * @throws \ErrorException
+     * @return array Array of colors sorted by times used
+     * @throws GenericException
      */
-    private function countColors()
+    private function countColors(): array
     {
-        $this->precision = max(1, abs((int)$this->precision));
+        $this->precision = max(1, abs($this->precision));
         $colors = array();
 
         // Test for image type
         $img = $this->imageTypeToResource();
 
-        if (!$img && $img !== null) {
-            throw new \ErrorException("Unable to open: {$this->filename}");
-        }
-
         // Get image size and check if it's really an image
         $size = @getimagesize($this->filename);
 
         if ($size === false) {
-            throw new \ErrorException("Unable to get image size data: {$this->filename}");
+            throw new GenericException("Unable to get image size data: {$this->filename}");
         }
 
         // This is pretty naive approach,
-        // but looping through the image is only way I thought of
+        // but looping through the image is the only way I thought of
         for ($x = 0; $x < $size[0]; $x += $this->precision) {
             for ($y = 0; $y < $size[1]; $y += $this->precision) {
                 $thisColor = imagecolorat($img, $x, $y);
@@ -195,23 +195,23 @@ class Palette
      * @return bool
      * @throws \Exception
      */
-    public function save()
+    public function save(): bool
     {
         // Check for destination
         if (empty($this->destination)) {
             throw new \InvalidArgumentException('No destination given for save');
         }
 
-        // Check destination writability
+        // Check destination for write permissions
         $this->checkDestination();
 
         // Check for data we should write
         if (empty($this->colorsArray)) {
-            throw new \ErrorException("Couldn't detect colors from image: {$this->filename}");
+            throw new GenericException("Couldn't detect colors from image: {$this->filename}");
         }
 
         // Encode for saving
-        $colorsData = json_encode($this->colorsArray);
+        $colorsData = json_encode($this->colorsArray, JSON_THROW_ON_ERROR);
 
         // Save and return the result of save operation
         file_put_contents($this->destination, $colorsData);
@@ -225,30 +225,30 @@ class Palette
      * Function takes $this->filename and returns
      * imagecreatefrom{gif|jpeg|png} for further processing
      *
-     * @return resource Image resource based on content
-     * @throws \ErrorException
+     * @return GdImage Image resource based on content
+     * @throws GenericException
      */
-    private function imageTypeToResource()
+    private function imageTypeToResource(): GdImage
     {
         try {
             if (filesize($this->filename) < 12) {
-                throw new \ErrorException('File size smaller than 12');
+                throw new GenericException('File size smaller than 12');
             }
             $type = exif_imagetype($this->filename);
         } catch (\Exception $e) {
-            throw new \ErrorException($e->getMessage());
+            throw new GenericException($e->getMessage());
         }
 
         switch ($type) {
             case '1': // IMAGETYPE_GIF
-                return @imagecreatefromgif($this->filename);
+                return @\imagecreatefromgif($this->filename);
             case '2': // IMAGETYPE_JPEG
-                return @imagecreatefromjpeg($this->filename);
+                return @\imagecreatefromjpeg($this->filename);
             case '3': // IMAGETYPE_PNG
-                return @imagecreatefrompng($this->filename);
+                return @\imagecreatefrompng($this->filename);
             default:
                 $image_type_code = image_type_to_mime_type($type);
-                throw new \ErrorException("Unknown image type: {$image_type_code} ({$type}): {$this->filename}");
+                throw new GenericException("Unknown image type: {$image_type_code} ({$type}): {$this->filename}");
         }
     }
 
@@ -263,13 +263,13 @@ class Palette
      * @return boolean True or false, with exceptions
      * @throws \Exception
      */
-    private function checkDestination()
+    private function checkDestination(): bool
     {
         $destination_dir = dirname($this->destination);
 
         // Test if we have destination directory
         if (!@mkdir($destination_dir, 0755) && !is_dir($destination_dir)) {
-            throw new \ErrorException("Couldn't create missing destination dir: {$destination_dir}");
+            throw new GenericException("Couldn't create missing destination dir: {$destination_dir}");
         }
 
         // Test if we can write to it
@@ -279,7 +279,7 @@ class Palette
         chmod($destination_dir, 0755);
 
         if (!is_writable($destination_dir)) {
-            throw new \ErrorException("Destination directory not writable: {$destination_dir}");
+            throw new GenericException("Destination directory not writable: {$destination_dir}");
         }
 
         return true;
